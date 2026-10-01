@@ -1,0 +1,63 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>QzLauncher</RootNamespace>
+    <AssemblyName>千织7.0PC启动器</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <Version>3.0.0</Version>
+    <AssemblyVersion>3.0.0.0</AssemblyVersion>
+    <FileVersion>3.0.0.0</FileVersion>
+    <InformationalVersion>3.0.0</InformationalVersion>
+  </PropertyGroup>
+
+  <!-- 单文件压缩发布配置：dotnet publish 时产出自带 .NET 运行时的【单个压缩 exe】（绿色免安装） -->
+  <PropertyGroup>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.27.1" />
+    <PackageReference Include="ZstdSharp.Port" Version="0.8.1" />
+    <PackageReference Include="protobuf-net" Version="3.2.30" />
+    <PackageReference Include="System.IO.Hashing" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\patch_astrolabe.dll" />
+    <EmbeddedResource Include="Assets\Astrolabe.7.0.guoji.dll" LogicalName="Astrolabe.7.0.guoji.dll" />
+    <EmbeddedResource Include="Assets\Launcher\Launcher.dll" LogicalName="Launcher.dll" />
+    <EmbeddedResource Include="Assets\Launcher\ChioriPlugin.dll" LogicalName="ChioriPlugin.dll" />
+    <EmbeddedResource Include="Assets\Launcher\FPS.dll" LogicalName="FPS.dll" />
+    <EmbeddedResource Include="Plugins\ChioriPlugin\config.ini" LogicalName="DefaultChioriConfig.ini" />
+    <EmbeddedResource Include="Plugins\FPS\config.ini" LogicalName="DefaultFpsConfig.ini" />
+    <Resource Include="Assets\bg.png" />
+    <Resource Include="Assets\logo.png" />
+    <Resource Include="Assets\icon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Plugins\**\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\HelpGifs\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\Launcher\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

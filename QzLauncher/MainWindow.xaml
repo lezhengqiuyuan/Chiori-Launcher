@@ -1,0 +1,1258 @@
+<Window x:Class="QzLauncher.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="千织 7.0 专用启动器 v3.0" Height="680" Width="1100"
+        MinHeight="640" MinWidth="1000"
+        WindowStartupLocation="CenterScreen"
+        Icon="pack://application:,,,/Assets/icon.png"
+        Background="#080B11"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        FontFamily="Microsoft YaHei UI, Segoe UI, sans-serif">
+    
+    <Window.Resources>
+        <!-- 颜色与画刷 -->
+        <SolidColorBrush x:Key="TextWhite" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="TextMuted" Color="#A6B4C9"/>
+        <SolidColorBrush x:Key="AccentGold" Color="#FFB300"/>
+        <SolidColorBrush x:Key="AccentBlue" Color="#00B0FF"/>
+        <SolidColorBrush x:Key="AccentGreen" Color="#00E676"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <!-- 原神暗黑极简滚动条样式 (替换丑陋系统白灰大滚动条) -->
+        <Style TargetType="{x:Type ScrollBar}">
+            <Setter Property="Stylus.IsFlicksEnabled" Value="False"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Width" Value="6"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollBar}">
+                        <Grid x:Name="Bg" SnapsToDevicePixels="true">
+                            <Track x:Name="PART_Track" IsDirectionReversed="true">
+                                <Track.Thumb>
+                                    <Thumb>
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="{x:Type Thumb}">
+                                                <Border Background="#35496B" CornerRadius="3" Margin="1,0"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 玻璃拟态卡片边框 (不使用全局位图Effect，确保内部全部文本100%矢量锐利) -->
+        <Style x:Key="GlassCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="#EB0D1320"/>
+            <Setter Property="BorderBrush" Value="#354664"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="16"/>
+        </Style>
+
+        <!-- 扁平现代按钮 -->
+        <Style x:Key="SubActionBtn" TargetType="Button">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Height" Value="38"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Opacity" Value="0.75"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bd" Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 原神标志性金色启动大按钮 (底层发光阴影与顶层文字彻底分离，确保文字100%极清) -->
+        <Style x:Key="GenshinLaunchBtn" TargetType="Button">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid x:Name="root">
+                            <!-- 底层专用独立金色发光层 (无任何子元素，完全不影响文字) -->
+                            <Border x:Name="shadow" CornerRadius="28" Background="#FFA000" Opacity="0.35">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#FFA000" BlurRadius="24" ShadowDepth="3" Opacity="0.65"/>
+                                </Border.Effect>
+                            </Border>
+
+                            <!-- 上层纯矢量按钮与文字 (无任何Effect，文字刀切般锐利) -->
+                            <Border x:Name="border" CornerRadius="28" Background="{TemplateBinding Background}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="shadow" Property="Opacity" Value="0.6"/>
+                                <Setter TargetName="border" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="1.02" ScaleY="1.02" CenterX="120" CenterY="28"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="shadow" Property="Opacity" Value="0.2"/>
+                                <Setter TargetName="border" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.98" ScaleY="0.98" CenterX="120" CenterY="28"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="root" Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ======================================================== -->
+        <!-- 千织启动器专属定制控件库 (100% 适配千织黑金深蓝设计规范) -->
+        <!-- ======================================================== -->
+
+        <!-- 1. 千织专属金色流光开关 (QzToggleSwitch) -->
+        <Style x:Key="QzToggleSwitch" TargetType="CheckBox">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Grid Background="Transparent">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <!-- 滑轨底槽 -->
+                                <Border x:Name="Track" Width="44" Height="24" CornerRadius="12" 
+                                        Background="#1C273A" BorderBrush="#35496B" BorderThickness="1.2">
+                                    <!-- 滑动圆块 -->
+                                    <Border x:Name="Thumb" Width="18" Height="18" CornerRadius="9" 
+                                            Background="#94A3B8" HorizontalAlignment="Left" Margin="2,0,0,0">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="#000000" BlurRadius="4" ShadowDepth="1" Opacity="0.4"/>
+                                        </Border.Effect>
+                                    </Border>
+                                </Border>
+                                <!-- 开/关 状态文本标签 -->
+                                <TextBlock x:Name="StateText" Text="关" FontSize="12.5" FontWeight="SemiBold" 
+                                           Foreground="#94A3B8" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <!-- 开启状态：千织琥珀金流光高亮 -->
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Track" Property="Background" Value="#FFA000"/>
+                                <Setter TargetName="Track" Property="BorderBrush" Value="#FFE082"/>
+                                <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right"/>
+                                <Setter TargetName="Thumb" Property="Margin" Value="0,0,2,0"/>
+                                <Setter TargetName="Thumb" Property="Background" Value="#3E2700"/>
+                                <Setter TargetName="StateText" Property="Text" Value="开"/>
+                                <Setter TargetName="StateText" Property="Foreground" Value="#FFE082"/>
+                            </Trigger>
+                            <!-- 鼠标悬浮微光 -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Track" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 2. 千织专属深色毛玻璃输入框 (QzTextBox) -->
+        <Style x:Key="QzTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="#162030"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="#35496B"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Padding" Value="8,2"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="CaretBrush" Value="#FFA000"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="6">
+                            <ScrollViewer x:Name="PART_ContentHost" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#FFA000"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#4B6594"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 3. 千织专属暗黑黑金拟态下拉框 (QzComboBox) - 彻底重写 ControlTemplate 消除白块与变形 -->
+        <ControlTemplate x:Key="QzComboBoxToggleButton" TargetType="ToggleButton">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="28" />
+                </Grid.ColumnDefinitions>
+                <Border x:Name="Border" Grid.ColumnSpan="2" CornerRadius="6" 
+                        Background="#141C2B" BorderBrush="#2D3F5A" BorderThickness="1"/>
+                <Path x:Name="Arrow" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"
+                      Data="M 0 0 L 4 4 L 8 0 Z" Fill="#FFA000"/>
+            </Grid>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsMouseOver" Value="true">
+                    <Setter TargetName="Border" Property="Background" Value="#1C273C"/>
+                    <Setter TargetName="Border" Property="BorderBrush" Value="#FFA000"/>
+                    <Setter TargetName="Arrow" Property="Fill" Value="#FFE082"/>
+                </Trigger>
+                <Trigger Property="IsChecked" Value="true">
+                    <Setter TargetName="Border" Property="Background" Value="#1C273C"/>
+                    <Setter TargetName="Border" Property="BorderBrush" Value="#FFE082"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="false">
+                    <Setter TargetName="Border" Property="Opacity" Value="0.4"/>
+                    <Setter TargetName="Arrow" Property="Opacity" Value="0.4"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <Style x:Key="QzComboBoxItemStyle" TargetType="ComboBoxItem">
+            <Setter Property="SnapsToDevicePixels" Value="true"/>
+            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="#D0D8E6"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="Border" Padding="10,0" SnapsToDevicePixels="true" CornerRadius="4" Margin="2,1" Background="Transparent">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="true">
+                                <Setter TargetName="Border" Property="Background" Value="#24334C"/>
+                                <Setter Property="Foreground" Value="#FFE082"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="true">
+                                <Setter TargetName="Border" Property="Background" Value="#FFA000"/>
+                                <Setter Property="Foreground" Value="#2C1A00"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Foreground" Value="#64748B"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="QzComboBox" TargetType="ComboBox">
+            <Setter Property="SnapsToDevicePixels" Value="true"/>
+            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="MinHeight" Value="30"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="ItemContainerStyle" Value="{StaticResource QzComboBoxItemStyle}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="ToggleButton" 
+                                          Template="{StaticResource QzComboBoxToggleButton}" 
+                                          Focusable="false"
+                                          IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          ClickMode="Press"/>
+                            <ContentPresenter x:Name="ContentSite" IsHitTestVisible="False" 
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                              Margin="10,0,28,0"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Left"/>
+                            <Popup x:Name="Popup" Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True" 
+                                   Focusable="False"
+                                   PopupAnimation="Slide">
+                                <Grid x:Name="DropDown" SnapsToDevicePixels="True" 
+                                      MinWidth="{TemplateBinding ActualWidth}" MaxHeight="220" Margin="0,4,0,0">
+                                    <Border x:Name="DropDownBorder" Background="#121824" BorderBrush="#35496B" 
+                                            BorderThickness="1" CornerRadius="8" Padding="3">
+                                        <Border.Effect>
+                                            <DropShadowEffect Color="#000000" BlurRadius="12" ShadowDepth="3" Opacity="0.65"/>
+                                        </Border.Effect>
+                                        <ScrollViewer SnapsToDevicePixels="True">
+                                            <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                        </ScrollViewer>
+                                    </Border>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="HasItems" Value="false">
+                                <Setter TargetName="DropDownBorder" Property="MinHeight" Value="50"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 4. 问号帮助微型按钮 (QzHelpBtn) -->
+        <Style x:Key="QzHelpBtn" TargetType="Button">
+            <Setter Property="Width" Value="18"/>
+            <Setter Property="Height" Value="18"/>
+            <Setter Property="Background" Value="#24334D"/>
+            <Setter Property="BorderBrush" Value="#3D5175"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#FFE082"/>
+            <Setter Property="FontSize" Value="10.5"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="9">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#FFA000"/>
+                                <Setter Property="Foreground" Value="#3E2700"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <!-- 1. 高清二次元原画背景图 -->
+        <Image Source="Assets/bg.png" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+        <!-- 2. 径向暗角与左下侧暗化遮罩，确保文字和卡片清晰易读 -->
+        <Rectangle>
+            <Rectangle.Fill>
+                <RadialGradientBrush Center="0.75,0.45" GradientOrigin="0.75,0.45" RadiusX="0.9" RadiusY="0.9">
+                    <GradientStop Color="#00000000" Offset="0"/>
+                    <GradientStop Color="#80060911" Offset="0.6"/>
+                    <GradientStop Color="#F005080E" Offset="1"/>
+                </RadialGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+        
+        <!-- 左侧纵向渐变遮罩 -->
+        <Rectangle Width="580" HorizontalAlignment="Left">
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#E6070B13" Offset="0"/>
+                    <GradientStop Color="#B3090F1A" Offset="0.7"/>
+                    <GradientStop Color="#00090F1A" Offset="1"/>
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+
+        <!-- 主内容区 -->
+        <Grid Margin="32,24,32,24">
+            <Grid.RowDefinitions>
+                <!-- 顶栏：Logo、导航与状态 -->
+                <RowDefinition Height="Auto"/>
+                <!-- 中部核心内容区 (主页与注入设置面板互斥显示) -->
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- ========================================== -->
+            <!-- 顶栏 (Row 0) -->
+            <!-- ========================================== -->
+            <DockPanel Grid.Row="0">
+                <!-- 左侧：典雅高级原神风格标题排版 -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- 原神金色艺术徽标竖条 -->
+                    <Border Width="4" Height="32" Background="#FFA000" CornerRadius="2" Margin="0,0,14,0">
+                        <Border.Effect>
+                            <DropShadowEffect Color="#FFA000" BlurRadius="12" ShadowDepth="0" Opacity="0.8"/>
+                        </Border.Effect>
+                    </Border>
+
+                    <!-- 启动器主副标题 -->
+                    <StackPanel VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="千织 7.0 专用启动器" FontSize="18" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                            <Border Background="#24334D" BorderBrush="#3D5175" BorderThickness="1" CornerRadius="10" Padding="8,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="v3.0" FontSize="10" FontWeight="Bold" Foreground="#FFE082"/>
+                            </Border>
+                            <Border Background="#1C2D42" BorderBrush="#2F4A6D" BorderThickness="1" CornerRadius="10" Padding="8,2" Margin="6,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="7.0.0" FontSize="10" FontWeight="Bold" Foreground="#80D8FF"/>
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Text="Chiori Special Edition · 官方差分互转 · 插件热替换" FontSize="11" Foreground="#94A3B8" Margin="0,3,0,0"/>
+                    </StackPanel>
+
+                    <!-- 千织专属导航切换胶囊 (启动主页 ⇄ 注入设置) -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="28,0,0,0">
+                        <Border x:Name="TabMainView" Background="#FFA000" CornerRadius="18" Padding="14,6" Margin="0,0,8,0" Cursor="Hand" MouseLeftButtonUp="TabMainView_Click">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="🚀 " FontSize="12"/>
+                                <TextBlock x:Name="TxtTabMainText" Text="启动主页" FontSize="12.5" FontWeight="Bold" Foreground="#3E2700"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border x:Name="TabInjectionView" Background="#800F1522" BorderBrush="#2F3E58" BorderThickness="1" CornerRadius="18" Padding="14,6" Margin="0,0,8,0" Cursor="Hand" MouseLeftButtonUp="TabInjectionView_Click">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="⚙ " FontSize="12"/>
+                                <TextBlock x:Name="TxtTabInjectionText" Text="注入设置" FontSize="12.5" FontWeight="SemiBold" Foreground="#A6B4C9"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border x:Name="TabTutorialView" Background="#800F1522" BorderBrush="#2F3E58" BorderThickness="1" CornerRadius="18" Padding="14,6" Cursor="Hand" MouseLeftButtonUp="BtnOpenTutorial_Click" ToolTip="点击查看 7.0 启动器使用教程">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="📖 " FontSize="12"/>
+                                <TextBlock Text="使用教程" FontSize="12.5" FontWeight="SemiBold" Foreground="#A6B4C9"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- 右侧：当前服务器药丸徽章 + 游戏目录选择按钮 -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <!-- 游戏路径精简指示条 -->
+                    <Border Background="#800F1522" BorderBrush="#2F3E58" BorderThickness="1" CornerRadius="18" Padding="12,6" Margin="0,0,12,0" Cursor="Hand" MouseLeftButtonUp="BtnBrowseGameDir_Click" ToolTip="点击修改游戏安装路径">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="📁 " FontSize="12"/>
+                            <TextBlock Text="游戏目录: " FontSize="12" Foreground="{StaticResource TextMuted}"/>
+                            <TextBlock x:Name="TxtShortGameDir" Text="未设置路径" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextWhite}" MaxWidth="220" TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 服务器状态胶囊 -->
+                    <Border x:Name="BadgeServerScheme" Background="#800F1522" BorderBrush="#354668" BorderThickness="1" CornerRadius="18" Padding="14,6">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Ellipse x:Name="DotStatus" Width="8" Height="8" Fill="#00E676" Margin="0,0,8,0"/>
+                            <TextBlock x:Name="TxtCurrentSchemeBadge" Text="检测中..." FontWeight="Bold" FontSize="13" Foreground="#FFFFFF"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </DockPanel>
+
+            <!-- ======================================================== -->
+            <!-- 视图 1：启动主页 (Row 1)                                -->
+            <!-- ======================================================== -->
+            <Grid x:Name="ViewMainPanel" Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <!-- 中部原画透光留白区 -->
+                    <RowDefinition Height="*"/>
+                    <!-- 底部操作与启动卡片区 -->
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- 底栏主操作区 (Row 1) -->
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <!-- 左侧：下载与转换卡片面板 -->
+                        <ColumnDefinition Width="600"/>
+                        <!-- 中间弹性占位 -->
+                        <ColumnDefinition Width="*"/>
+                        <!-- 右下角：金色大启动区 -->
+                        <ColumnDefinition Width="260"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 左侧功能面板 (下载 7.0 国服 + 国服/国际服互转) -->
+                    <StackPanel Grid.Column="0" VerticalAlignment="Bottom">
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- 卡片 1: 下载 7.0 国服版本 -->
+                            <Border Grid.Column="0" Style="{StaticResource GlassCardStyle}" Margin="0,0,8,0">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <StackPanel Grid.Row="0" Margin="0,0,0,8">
+                                        <TextBlock Text="⬇ 下载 7.0 国服版本" FontSize="14" FontWeight="Bold" Foreground="{StaticResource TextWhite}"/>
+                                        <TextBlock Text="官方 Sophon CDN 极速下载" FontSize="11" Foreground="{StaticResource TextMuted}" Margin="0,2,0,0"/>
+                                    </StackPanel>
+
+                                    <!-- 进度条 -->
+                                    <StackPanel Grid.Row="1" Margin="0,4,0,6">
+                                        <ProgressBar x:Name="PbDownload" Height="6" Minimum="0" Maximum="100" Value="0" Background="#1B2333" Foreground="{StaticResource AccentBlue}" BorderThickness="0"/>
+                                        <DockPanel Margin="0,4,0,0">
+                                            <TextBlock x:Name="TxtDownloadPercent" Text="0.0%" FontSize="11" FontWeight="Bold" Foreground="{StaticResource AccentBlue}"/>
+                                            <TextBlock x:Name="TxtDownloadBytes" Text="0 MB / 0 MB" HorizontalAlignment="Right" FontSize="10" Foreground="{StaticResource TextMuted}"/>
+                                        </DockPanel>
+                                    </StackPanel>
+
+                                    <!-- 状态说明 -->
+                                    <TextBlock Grid.Row="2" x:Name="TxtDownloadStatus" Text="待命中。点击即可下载官方国服 7.0 完整资源。" FontSize="11" Foreground="{StaticResource TextMuted}" TextWrapping="Wrap" MinHeight="34" VerticalAlignment="Top" Margin="0,0,0,8"/>
+
+                                    <!-- 操作按钮 -->
+                                    <Button Grid.Row="3" x:Name="BtnDownload" Content="开始下载国服" Style="{StaticResource SubActionBtn}" Background="#1976D2" Foreground="#FFFFFF" Click="BtnDownload_Click"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- 卡片 2: 国服 ⇄ 国际服互切换 -->
+                            <Border Grid.Column="1" Style="{StaticResource GlassCardStyle}" Margin="8,0,0,0">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <Grid Grid.Row="0" Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                            <TextBlock Text="⇄ 国服 / 国际服互转" FontSize="13.5" FontWeight="Bold" Foreground="{StaticResource TextWhite}" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock x:Name="TxtConvertDirection" Text="国服 ⇄ 国际服 7.0 互转" FontSize="11" Foreground="#FFE082" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+                                        <Button Grid.Column="1" x:Name="BtnCdnBoost" Content="⚡ 节点优选" VerticalAlignment="Center" Margin="6,0,0,0"
+                                                Style="{StaticResource SubActionBtn}" Height="25" Padding="8,0" FontSize="11"
+                                                Background="#24334D" BorderBrush="#3D5175" Foreground="#FFE082"
+                                                Click="BtnCdnBoost_Click" ToolTip="测速并绑定海外 CDN 香港直连节点，修改 Hosts 加速转服"/>
+                                    </Grid>
+
+                                    <!-- 进度条 -->
+                                    <StackPanel Grid.Row="1" Margin="0,4,0,6">
+                                        <ProgressBar x:Name="PbConvert" Height="6" Minimum="0" Maximum="100" Value="0" Background="#1B2333" Foreground="{StaticResource AccentGold}" BorderThickness="0"/>
+                                        <DockPanel Margin="0,4,0,0">
+                                            <TextBlock x:Name="TxtConvertPercent" Text="0.0%" FontSize="11" FontWeight="Bold" Foreground="{StaticResource AccentGold}"/>
+                                            <TextBlock x:Name="TxtConvertBytes" Text="0 MB / 0 MB" HorizontalAlignment="Right" FontSize="10" Foreground="{StaticResource TextMuted}"/>
+                                        </DockPanel>
+                                    </StackPanel>
+
+                                    <!-- 状态说明 -->
+                                    <TextBlock Grid.Row="2" x:Name="TxtConvertStatus" Text="比对双端文件，仅拉取必要差异。" FontSize="11" Foreground="{StaticResource TextMuted}" TextWrapping="Wrap" MinHeight="34" VerticalAlignment="Top" Margin="0,0,0,8"/>
+
+                                    <!-- 操作按钮 -->
+                                    <Button Grid.Row="3" x:Name="BtnConvert" Content="一键转换为国际服" Style="{StaticResource SubActionBtn}" Background="#FFA000" Foreground="#2A1700" Click="BtnConvert_Click"/>
+                                </Grid>
+                            </Border>
+                        </Grid>
+
+                        <!-- 底部日志提示胶囊与打开日志按钮 -->
+                        <Border Background="#990B0F17" BorderBrush="#202A3D" BorderThickness="1" CornerRadius="14" Padding="12,5">
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Content="📄 打开日志" Style="{StaticResource SubActionBtn}" Height="24" Padding="8,0" FontSize="11" Background="#26344B" Foreground="#80D8FF" Margin="8,0,0,0" Click="BtnOpenLog_Click" ToolTip="点击使用记事本打开详细运行日志"/>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="⚡ " FontSize="11"/>
+                                    <TextBlock x:Name="TxtGlobalLog" Text="千织 7.0 启动器 v3.0 已就绪 · Astrolabe 补丁待命" FontSize="11" Foreground="{StaticResource TextMuted}" TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- 右下角金色启动大按钮区域 -->
+                    <StackPanel Grid.Column="2" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+                        <!-- 提示胶囊 -->
+                        <Border Background="#80211012" BorderBrush="#805C1D24" BorderThickness="1" CornerRadius="8" Padding="10,6" Margin="0,0,0,10" HorizontalAlignment="Center">
+                            <TextBlock Text="⚠️ 补丁仅支持国际服" FontSize="11" Foreground="#FF8A80" FontWeight="SemiBold"/>
+                        </Border>
+
+                        <!-- 原神经典超大金色圆角按钮 -->
+                        <Button x:Name="BtnLaunch" Width="240" Height="56" Style="{StaticResource GenshinLaunchBtn}" Click="BtnLaunch_Click">
+                            <Button.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#FFE082" Offset="0"/>
+                                    <GradientStop Color="#FFB300" Offset="0.5"/>
+                                    <GradientStop Color="#FFA000" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Button.Background>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="▶ " FontSize="18" FontWeight="ExtraBold" Foreground="#3E2700"/>
+                                <TextBlock x:Name="TxtLaunchBtnText" Text="启动游戏" FontSize="19" FontWeight="ExtraBold" Foreground="#3E2700"/>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- 退出自动恢复提示 -->
+                        <TextBlock x:Name="TxtLaunchSubNotice" Text="自动加载 Astrolabe 补丁 · 补丁常驻生效，退出无需还原" FontSize="10.5" Foreground="#CBD5E1" HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+
+            <!-- ======================================================== -->
+            <!-- 视图 2：注入设置全功能工作台 (Row 1, 适配千织黑金深蓝规范)   -->
+            <!-- ======================================================== -->
+            <Grid x:Name="ViewInjectionPanel" Grid.Row="1" Visibility="Collapsed" Margin="0,12,0,0">
+                <Grid.RowDefinitions>
+                    <!-- 0. 顶部系统卡片 + 注入总开关 -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- 1. 💡 游戏内操作指引与快捷键速查横幅 -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- 2. 预设管理与分类药丸栏 -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- 3. 设置项统一网格滚动工作台 -->
+                    <RowDefinition Height="*"/>
+                    <!-- 4. 底部状态展示条 -->
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- 0. 顶部系统卡片与注入总开关 -->
+                <Border Grid.Row="0" Style="{StaticResource GlassCardStyle}" Padding="16,10" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- 左侧：系统信息卡片 -->
+                        <DockPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                            <Image Source="pack://application:,,,/Assets/icon.png" Width="40" Height="40" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <StackPanel VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock x:Name="TxtPluginName" Text="千织注入增强与性能监控系统" FontSize="15" FontWeight="Bold" Foreground="#FFFFFF"/>
+                                    <Border Background="#24334D" BorderBrush="#3D5175" BorderThickness="1" CornerRadius="8" Padding="6,1" Margin="8,0,0,0">
+                                        <TextBlock x:Name="TxtPluginAuthor" Text="千织 7.0 专用" FontSize="10.5" FontWeight="Bold" Foreground="#FFE082"/>
+                                    </Border>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                    <TextBlock x:Name="TxtPluginDesc" Text="全模块聚合设置 · 画质/广角/自由视角/性能悬浮窗HUD" FontSize="11" Foreground="#94A3B8"/>
+                                    <TextBlock Text=" · " FontSize="11" Foreground="#4A5D78"/>
+                                    <TextBlock x:Name="TxtPluginDate" Text="默认纯净全关" FontSize="11" Foreground="#6B7C96"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <!-- 右侧操作组 (功能下拉菜单 + 启用注入总开关) -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <!-- 功能菜单 (下载 / 修复) -->
+                            <Button x:Name="BtnFunctionsMenu" Content="功能 ▾" Style="{StaticResource SubActionBtn}"
+                                    Height="30" Padding="12,0" FontSize="12" Background="#1C273C" BorderBrush="#35496B" Foreground="#FFE082" Margin="0,0,14,0"
+                                    Click="BtnFunctionsMenu_Click"/>
+
+                            <!-- 启用注入 (Injection) 开关 -->
+                            <Border x:Name="BorderInjectionSwitch" Background="#800F1522" BorderBrush="#2F3E58" BorderThickness="1" CornerRadius="16" Padding="12,4">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel Margin="0,0,10,0" VerticalAlignment="Center">
+                                        <TextBlock Text="启用注入 (Injection)" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Right"/>
+                                        <TextBlock x:Name="TxtInjectionSubLabel" Text="启动游戏时加载插件" FontSize="9.5" Foreground="#94A3B8" HorizontalAlignment="Right"/>
+                                    </StackPanel>
+                                    <CheckBox x:Name="ChkEnableInjection" Style="{StaticResource QzToggleSwitch}" Click="ChkEnableInjection_Click"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- 1. 💡 游戏内操作指引与快捷键速查横幅 -->
+                <Border Grid.Row="1" Style="{StaticResource GlassCardStyle}" Background="#600D1525" BorderBrush="#283A55" Padding="14,8" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- 提示徽章 -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
+                            <Border Background="#25354E" BorderBrush="#3D5377" BorderThickness="1" CornerRadius="8" Padding="6,2">
+                                <TextBlock Text="💡 操作指引" FontSize="11" FontWeight="Bold" Foreground="#FFE082"/>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- 快捷键与使用提示 -->
+                        <WrapPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="【F7】" FontWeight="Bold" Foreground="#FFA000" FontSize="11.5"/>
+                            <TextBlock Text="显隐性能悬浮窗   " Foreground="#CBD5E1" FontSize="11.5"/>
+                            <TextBlock Text="【F11】" FontWeight="Bold" Foreground="#FFA000" FontSize="11.5"/>
+                            <TextBlock Text="即时重载配置   " Foreground="#CBD5E1" FontSize="11.5"/>
+                            <TextBlock Text="【INS】" FontWeight="Bold" Foreground="#FFA000" FontSize="11.5"/>
+                            <TextBlock Text="自由视角摄影   " Foreground="#CBD5E1" FontSize="11.5"/>
+                            <TextBlock Text="【DEL】" FontWeight="Bold" Foreground="#FFA000" FontSize="11.5"/>
+                            <TextBlock Text="锁定视角   " Foreground="#CBD5E1" FontSize="11.5"/>
+                            <TextBlock Text="· 所有模块默认保持关闭，按需开启生效，可向下滚动浏览" Foreground="#94A3B8" FontSize="11" VerticalAlignment="Center"/>
+                        </WrapPanel>
+
+                        <!-- 右侧查看详细手册按钮 -->
+                        <Button Grid.Column="2" Content="查看详细手册 ➔" Style="{StaticResource SubActionBtn}" Height="26" Padding="10,0" FontSize="11" Background="#1E2A3F" BorderBrush="#3D5175" Foreground="#FFE082" Click="BtnViewManual_Click"/>
+                    </Grid>
+                </Border>
+
+                <!-- 2. 分类筛选药丸与预设管理栏 -->
+                <Border Grid.Row="2" Style="{StaticResource GlassCardStyle}" Padding="14,7" Margin="0,0,0,8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- 第 1 行：分类筛选药丸按钮 -->
+                        <DockPanel Grid.Row="0" Margin="0,0,0,6">
+                            <TextBlock DockPanel.Dock="Left" Text="模块分类: " FontSize="12" FontWeight="Bold" Foreground="#94A3B8" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border x:Name="BtnFilterAll" CornerRadius="12" Padding="10,3" Margin="0,0,6,0" Cursor="Hand" Background="#FFA000" BorderThickness="0" MouseLeftButtonUp="BtnFilterCategory_Click" Tag="全部">
+                                    <TextBlock x:Name="TxtFilterAll" Text="全部显示 (50+项)" FontSize="11" FontWeight="Bold" Foreground="#3E2700"/>
+                                </Border>
+                                <Border x:Name="BtnFilterHud" CornerRadius="12" Padding="10,3" Margin="0,0,6,0" Cursor="Hand" Background="#1A2538" BorderBrush="#35496B" BorderThickness="1" MouseLeftButtonUp="BtnFilterCategory_Click" Tag="悬浮窗">
+                                    <TextBlock x:Name="TxtFilterHud" Text="📊 性能悬浮窗 HUD" FontSize="11" FontWeight="SemiBold" Foreground="#CBD5E1"/>
+                                </Border>
+                                <Border x:Name="BtnFilterGraphics" CornerRadius="12" Padding="10,3" Margin="0,0,6,0" Cursor="Hand" Background="#1A2538" BorderBrush="#35496B" BorderThickness="1" MouseLeftButtonUp="BtnFilterCategory_Click" Tag="画质帧率">
+                                    <TextBlock x:Name="TxtFilterGraphics" Text="🎮 画质与帧率" FontSize="11" FontWeight="SemiBold" Foreground="#CBD5E1"/>
+                                </Border>
+                                <Border x:Name="BtnFilterCamera" CornerRadius="12" Padding="10,3" Margin="0,0,6,0" Cursor="Hand" Background="#1A2538" BorderBrush="#35496B" BorderThickness="1" MouseLeftButtonUp="BtnFilterCategory_Click" Tag="视角摄影">
+                                    <TextBlock x:Name="TxtFilterCamera" Text="📷 视角与摄影" FontSize="11" FontWeight="SemiBold" Foreground="#CBD5E1"/>
+                                </Border>
+                                <Border x:Name="BtnFilterUtility" CornerRadius="12" Padding="10,3" Margin="0,0,6,0" Cursor="Hand" Background="#1A2538" BorderBrush="#35496B" BorderThickness="1" MouseLeftButtonUp="BtnFilterCategory_Click" Tag="便捷辅助">
+                                    <TextBlock x:Name="TxtFilterUtility" Text="🛠️ 便捷辅助与个性化" FontSize="11" FontWeight="SemiBold" Foreground="#CBD5E1"/>
+                                </Border>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <!-- 第 2 行：预设胶囊列表与操作 -->
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- 预设标签提示 -->
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
+                                <TextBlock Text="配置预设: " FontSize="12" FontWeight="Bold" Foreground="#94A3B8" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="TxtCurrentPresetLabel" Text="默认预设" FontSize="12" FontWeight="Bold" Foreground="#FFE082" VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                            <!-- 预设胶囊横向列表 -->
+                            <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" VerticalAlignment="Center">
+                                <ItemsControl x:Name="IcPresetsList">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border x:Name="PillBd" CornerRadius="14" Padding="10,3" Margin="0,0,8,0" Cursor="Hand" MouseLeftButtonUp="PresetItem_Click">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="#1A2538"/>
+                                                        <Setter Property="BorderBrush" Value="#35496B"/>
+                                                        <Setter Property="BorderThickness" Value="1"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                                <Setter Property="Background" Value="#FFA000"/>
+                                                                <Setter Property="BorderBrush" Value="#FFE082"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Name}" FontSize="11" FontWeight="Bold">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Foreground" Value="#CBD5E1"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                                        <Setter Property="Foreground" Value="#3E2700"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                    <Button Content=" ✕" FontSize="10" FontWeight="Bold" Foreground="#FF5252" Background="Transparent" BorderThickness="0" Cursor="Hand" Margin="4,0,0,0" Padding="0" Click="BtnDeletePreset_Click" ToolTip="删除此预设"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+
+                            <!-- 右侧操作：新建预设 / 重置全部 -->
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button x:Name="BtnNewPreset" Content="+ 新建预设" Style="{StaticResource SubActionBtn}" Height="24" Padding="8,0" FontSize="10.5" Background="#24334D" BorderBrush="#3D5175" Foreground="#FFFFFF" Margin="0,0,6,0" Click="BtnNewPreset_Click"/>
+                                <Button x:Name="BtnResetAllPresets" Content="重置全部" Style="{StaticResource SubActionBtn}" Height="24" Padding="8,0" FontSize="10.5" Background="#3D2024" Foreground="#FF8A80" Click="BtnResetAllPresets_Click"/>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <!-- 3. 设置项自适应网格工作台 -->
+                <Border Grid.Row="3" Style="{StaticResource GlassCardStyle}" Padding="14,10" Margin="0,0,0,10">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl x:Name="IcSettingsGrid">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="3" Margin="0,0,-8,0"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <!-- 单个配置项卡片单元 (自适应等宽平分，无缝铺满，呼吸感舒适) -->
+                                    <Border Margin="0,0,8,10" Background="#800D1422" BorderBrush="#202F47" BorderThickness="1" CornerRadius="10" Padding="12,9">
+                                        <StackPanel>
+                                            <!-- 标题与帮助按钮行 -->
+                                            <DockPanel Margin="0,0,0,6">
+                                                <!-- 问号帮助按钮 -->
+                                                <Button DockPanel.Dock="Right" Content="?" Style="{StaticResource QzHelpBtn}"
+                                                        Visibility="{Binding HasHelp, Converter={StaticResource BoolToVis}}"
+                                                        Click="BtnSettingHelp_Click" ToolTip="点击查看该功能的图文演示"/>
+                                                <!-- 配置项名称与分类徽章 -->
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding DisplayName}" FontSize="12" FontWeight="SemiBold" Foreground="#FFFFFF" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                                    <Border Background="#1C283C" BorderBrush="#35496B" BorderThickness="1" CornerRadius="6" Padding="4,1" Margin="6,0,0,0" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Category}" FontSize="9" FontWeight="Bold" Foreground="#FFE082"/>
+                                                    </Border>
+                                                </StackPanel>
+                                            </DockPanel>
+
+                                            <!-- 控件呈现区 -->
+                                            <Grid MinHeight="32" VerticalAlignment="Center">
+                                                <!-- 1. Bool 开关类型 -->
+                                                <CheckBox Style="{StaticResource QzToggleSwitch}"
+                                                          IsChecked="{Binding BoolValue, Mode=TwoWay}"
+                                                          Visibility="{Binding IsBoolType, Converter={StaticResource BoolToVis}}"
+                                                          HorizontalAlignment="Left"/>
+
+                                                <!-- 2. Key 热键下拉选择类型 -->
+                                                <ComboBox Style="{StaticResource QzComboBox}"
+                                                          ItemsSource="{Binding AvailableKeys}"
+                                                          SelectedValuePath="KeyCode"
+                                                          DisplayMemberPath="KeyName"
+                                                          SelectedValue="{Binding KeyValue, Mode=TwoWay}"
+                                                          Visibility="{Binding IsKeyType, Converter={StaticResource BoolToVis}}"
+                                                          HorizontalAlignment="Stretch"/>
+
+                                                <!-- 3. Number 数值输入类型 -->
+                                                <TextBox Style="{StaticResource QzTextBox}"
+                                                         Text="{Binding FloatValue, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                                         Visibility="{Binding IsNumberType, Converter={StaticResource BoolToVis}}"
+                                                         HorizontalAlignment="Stretch"/>
+
+                                                <!-- 4. String 文本输入类型 -->
+                                                <TextBox Style="{StaticResource QzTextBox}"
+                                                         Text="{Binding StringValue, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                                         Visibility="{Binding IsStringType, Converter={StaticResource BoolToVis}}"
+                                                         HorizontalAlignment="Stretch"/>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- 4. 底部状态展示条 (游戏启动统一收拢至主页) -->
+                <Border Grid.Row="4" Background="#900B0F17" BorderBrush="#202A3D" BorderThickness="1" CornerRadius="14" Padding="16,8">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="#1C283C" BorderBrush="#35496B" BorderThickness="1" CornerRadius="10" Padding="8,2" Margin="0,0,10,0">
+                            <TextBlock Text="⚡ 状态" FontSize="10.5" FontWeight="Bold" Foreground="#FFE082"/>
+                        </Border>
+                        <TextBlock x:Name="TxtInjectionStatus" Text="注入系统已就绪 · 全模块实时同步至对应配置文件" FontSize="12" Foreground="{StaticResource TextMuted}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- ======================================================== -->
+        <!-- 注入操作指引与快捷键详细手册弹窗 (原神暗黑玻璃拟态风格)      -->
+        <!-- ======================================================== -->
+        <Grid x:Name="ManualDialogOverlay" Visibility="Collapsed" Background="#CC04070F">
+            <Grid Width="580" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <Border CornerRadius="16" Background="#FFA000" Opacity="0.25">
+                    <Border.Effect>
+                        <DropShadowEffect Color="#FFA000" BlurRadius="28" ShadowDepth="4" Opacity="0.5"/>
+                    </Border.Effect>
+                </Border>
+                <Border Background="#141D2D" BorderBrush="#E5A93C" BorderThickness="1.5" CornerRadius="16">
+                    <Grid Margin="22,18,22,18">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- 标题 -->
+                        <DockPanel Grid.Row="0" Margin="0,0,0,14">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Width="12" Height="12" Background="#FFA000" Margin="0,0,10,0" VerticalAlignment="Center">
+                                    <Border.LayoutTransform>
+                                        <RotateTransform Angle="45"/>
+                                    </Border.LayoutTransform>
+                                </Border>
+                                <TextBlock Text="注入增强与快捷键操作手册" FontSize="15.5" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            </StackPanel>
+                            <Button DockPanel.Dock="Right" Content="✕" FontSize="14" FontWeight="Bold" Foreground="#94A3B8" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnCloseManualDialog_Click"/>
+                        </DockPanel>
+
+                        <!-- 手册内容列表 -->
+                        <Border Grid.Row="1" Background="#0A0F17" BorderBrush="#202D42" BorderThickness="1" CornerRadius="10" Padding="14,12" Margin="0,0,0,16">
+                            <StackPanel>
+                                <TextBlock Text="📌 游戏内核心全局快捷键" FontSize="12.5" FontWeight="Bold" Foreground="#FFE082" Margin="0,0,0,8"/>
+                                <TextBlock FontSize="11.5" Foreground="#CBD5E1" LineHeight="18" TextWrapping="Wrap" Margin="0,0,0,12">
+                                    • <Run FontWeight="Bold" Foreground="#FFA000">【F7】</Run>：一键隐藏 / 显示性能悬浮窗 HUD（随时隐现左上角帧率监控）<LineBreak/>
+                                    • <Run FontWeight="Bold" Foreground="#FFA000">【F11】</Run>：游戏内即时重载配置（修改启动器设置后按下即时生效，无需重启游戏）<LineBreak/>
+                                    • <Run FontWeight="Bold" Foreground="#FFA000">【INS】</Run>：自由视角摄影开关（开启后可全方位飞行动画运镜）<LineBreak/>
+                                    • <Run FontWeight="Bold" Foreground="#FFA000">【DEL】</Run>：锁定 / 解锁当前视角<LineBreak/>
+                                    • <Run FontWeight="Bold" Foreground="#FFA000">【Alt + Enter】</Run>：切换独占全屏与无边框窗口模式
+                                </TextBlock>
+
+                                <TextBlock Text="💡 垂直同步与 120 帧突破" FontSize="12.5" FontWeight="Bold" Foreground="#FFE082" Margin="0,0,0,8"/>
+                                <TextBlock FontSize="11.5" Foreground="#94A3B8" LineHeight="18" TextWrapping="Wrap" Margin="0,0,0,12">
+                                    若开启【解锁帧率限制】（如 120 帧），建议同时开启【禁用垂直同步】。若显示器为 60Hz 且未禁用垂直同步，显卡会被强制锁定在 60 帧。
+                                </TextBlock>
+
+                                <TextBlock Text="🔒 纯净无干扰与零散落原则" FontSize="12.5" FontWeight="Bold" Foreground="#FFE082" Margin="0,0,0,8"/>
+                                <TextBlock FontSize="11.5" Foreground="#94A3B8" LineHeight="18" TextWrapping="Wrap">
+                                    所有功能模块与悬浮窗默认处于关闭状态，按需随心开启；所有运行数据与插件均保存在用户文档，严禁桌面残留任何文件。
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 底部关闭按钮 -->
+                        <Button Grid.Row="2" Content="我知道了" HorizontalAlignment="Right" Width="100" Height="32"
+                                Style="{StaticResource SubActionBtn}" Background="#FFA000" Foreground="#3E2700"
+                                Click="BtnCloseManualDialog_Click"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- ======================================================== -->
+        <!-- 注入帮助演示图文弹窗 (原神暗黑玻璃拟态风格)                    -->
+        <!-- ======================================================== -->
+        <Grid x:Name="HelpDialogOverlay" Visibility="Collapsed" Background="#CC04070F">
+            <Grid Width="520" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <Border CornerRadius="16" Background="#FFA000" Opacity="0.25">
+                    <Border.Effect>
+                        <DropShadowEffect Color="#FFA000" BlurRadius="28" ShadowDepth="4" Opacity="0.5"/>
+                    </Border.Effect>
+                </Border>
+                <Border Background="#141D2D" BorderBrush="#E5A93C" BorderThickness="1.5" CornerRadius="16">
+                    <Grid Margin="22,18,22,18">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- 标题 -->
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,12">
+                            <Border Width="12" Height="12" Background="#FFA000" Margin="0,0,10,0" VerticalAlignment="Center">
+                                <Border.LayoutTransform>
+                                    <RotateTransform Angle="45"/>
+                                </Border.LayoutTransform>
+                            </Border>
+                            <TextBlock x:Name="TxtHelpDialogTitle" Text="功能效果演示" FontSize="15" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        </StackPanel>
+
+                        <!-- 动图 / 演示图片 -->
+                        <Border Grid.Row="1" Background="#0A0F17" BorderBrush="#25354F" BorderThickness="1" CornerRadius="8" MaxHeight="300" Margin="0,0,0,16">
+                            <Image x:Name="ImgHelpPreview" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <!-- 关闭按钮 -->
+                        <Button Grid.Row="2" Content="知道了" HorizontalAlignment="Right" Width="96" Height="32"
+                                Style="{StaticResource SubActionBtn}" Background="#FFA000" Foreground="#3E2700"
+                                Click="BtnCloseHelpDialog_Click"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- ======================================================== -->
+        <!-- 插件下载 / 修复进度弹窗 (原神暗黑玻璃拟态风格)                  -->
+        <!-- ======================================================== -->
+        <Grid x:Name="DownloadDialogOverlay" Visibility="Collapsed" Background="#CC04070F">
+            <Grid Width="460" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <Border CornerRadius="16" Background="#00B0FF" Opacity="0.25">
+                    <Border.Effect>
+                        <DropShadowEffect Color="#00B0FF" BlurRadius="28" ShadowDepth="4" Opacity="0.5"/>
+                    </Border.Effect>
+                </Border>
+                <Border Background="#141D2D" BorderBrush="#00B0FF" BorderThickness="1.5" CornerRadius="16">
+                    <Grid Margin="24,20,24,20">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- 标题 -->
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,14">
+                            <TextBlock Text="⬇ " FontSize="16" Foreground="#00B0FF"/>
+                            <TextBlock x:Name="TxtDownloadDialogTitle" Text="插件下载与修复" FontSize="16" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        </StackPanel>
+
+                        <!-- 状态描述 -->
+                        <TextBlock Grid.Row="1" x:Name="TxtDownloadDialogStatus" Text="正在连接服务器..." FontSize="12.5" Foreground="#CBD5E1" Margin="0,0,0,12"/>
+
+                        <!-- 进度条 -->
+                        <ProgressBar Grid.Row="2" x:Name="PbPluginDownload" Height="8" Minimum="0" Maximum="100" Value="0" Background="#1B2333" Foreground="{StaticResource AccentBlue}" BorderThickness="0" Margin="0,0,0,18"/>
+
+                        <!-- 取消 / 确定按钮 -->
+                        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button x:Name="BtnCancelPluginDownload" Content="取消" Width="84" Height="32" Style="{StaticResource SubActionBtn}" Background="#222E42" Foreground="#94A3B8" Margin="0,0,10,0" Click="BtnCancelPluginDownload_Click"/>
+                            <Button x:Name="BtnConfirmPluginDownload" Content="确定" Width="84" Height="32" Style="{StaticResource SubActionBtn}" Background="#00B0FF" Foreground="#FFFFFF" IsEnabled="False" Click="BtnConfirmPluginDownload_Click"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- ======================================================== -->
+        <!-- 原神暗黑磨砂玻璃拟态弹窗 (彻底替换丑陋系统白框 MessageBox) -->
+        <!-- ======================================================== -->
+        <Grid x:Name="ModalDialogOverlay" Visibility="Collapsed" Background="#CC04070F">
+            <Grid Width="520" MaxHeight="600" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <!-- 底层独立发光阴影 (不包含文字，彻底避免文字被光栅化为低清位图) -->
+                <Border CornerRadius="16" Background="#FFA000" Opacity="0.3">
+                    <Border.Effect>
+                        <DropShadowEffect Color="#FFA000" BlurRadius="28" ShadowDepth="4" Opacity="0.5"/>
+                    </Border.Effect>
+                </Border>
+
+                <!-- 上层弹窗实体与纯矢量锐利文字 -->
+                <Border Background="#141D2D" BorderBrush="#E5A93C" BorderThickness="1.5" CornerRadius="16">
+                    <Grid Margin="24,20,24,20">
+                        <Grid.RowDefinitions>
+                            <!-- 弹窗标题 -->
+                            <RowDefinition Height="Auto"/>
+                            <!-- 弹窗正文 -->
+                            <RowDefinition Height="*"/>
+                            <!-- 弹窗操作按钮 -->
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                    <!-- 弹窗标题栏 -->
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,14">
+                        <!-- 金色菱形光标 -->
+                        <Border Width="14" Height="14" Background="#FFA000" Margin="0,0,10,0" VerticalAlignment="Center">
+                            <Border.LayoutTransform>
+                                <RotateTransform Angle="45"/>
+                            </Border.LayoutTransform>
+                        </Border>
+                        <TextBlock x:Name="ModalTitle" Text="提示信息" FontSize="16" FontWeight="Bold" Foreground="#FFFFFF"/>
+                    </StackPanel>
+
+                    <!-- 细微装饰分割线 -->
+                    <Border Grid.Row="0" VerticalAlignment="Bottom" Height="1" Background="#24334D" Margin="0,0,0,0"/>
+
+                    <!-- 弹窗内容说明（支持带滚动条浏览教程） -->
+                    <ScrollViewer Grid.Row="1" MaxHeight="380" VerticalScrollBarVisibility="Auto" Margin="0,14,0,20">
+                        <TextBlock x:Name="ModalMessage" Text="这里是详细提示内容..."
+                                   FontSize="13" Foreground="#CBD5E1" LineHeight="21" TextWrapping="Wrap"/>
+                    </ScrollViewer>
+
+                    <!-- 弹窗按钮组 -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                        <!-- 取消按钮 -->
+                        <Button x:Name="BtnModalCancel" MinWidth="96" Height="36" Padding="14,0" Margin="0,0,12,0"
+                                Cursor="Hand" Click="BtnModalCancel_Click">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="#222E42" BorderBrush="#3D5175" BorderThickness="1" CornerRadius="18">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                            <TextBlock x:Name="TxtModalCancelBtn" Text="取消" FontSize="13" FontWeight="SemiBold" Foreground="#94A3B8"/>
+                        </Button>
+
+                        <!-- 确认按钮 -->
+                        <Button x:Name="BtnModalConfirm" MinWidth="110" Height="36" Padding="16,0"
+                                Cursor="Hand" Click="BtnModalConfirm_Click">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border CornerRadius="18">
+                                        <Border.Background>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                <GradientStop Color="#FFE082" Offset="0"/>
+                                                <GradientStop Color="#FFB300" Offset="0.5"/>
+                                                <GradientStop Color="#FFA000" Offset="1"/>
+                                            </LinearGradientBrush>
+                                        </Border.Background>
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                            <TextBlock x:Name="TxtModalConfirmBtn" Text="确认" FontSize="13" FontWeight="Bold" Foreground="#3E2700"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+
+    <!-- ======================================================== -->
+    <!-- 国际服 CDN 节点优选与 Hosts 加速弹窗 (原神暗黑玻璃拟态) -->
+    <!-- ======================================================== -->
+    <Grid x:Name="CdnBoostDialogOverlay" Visibility="Collapsed" Background="#CC04070F">
+        <Grid Width="630" MaxHeight="530" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <!-- 底层独立发光金色微阴影 -->
+            <Border CornerRadius="16" Background="#FFA000" Opacity="0.25">
+                <Border.Effect>
+                    <DropShadowEffect Color="#FFA000" BlurRadius="32" ShadowDepth="4" Opacity="0.5"/>
+                </Border.Effect>
+            </Border>
+
+            <!-- 弹窗实体面板 -->
+            <Border Background="#121A28" BorderBrush="#E5A93C" BorderThickness="1.5" CornerRadius="16">
+                <Grid Margin="24,20,24,20">
+                    <Grid.RowDefinitions>
+                        <!-- 顶栏标题与关闭 -->
+                        <RowDefinition Height="Auto"/>
+                        <!-- 当前加速状态条 -->
+                        <RowDefinition Height="Auto"/>
+                        <!-- 节点测速列表 -->
+                        <RowDefinition Height="220"/>
+                        <!-- 底部操作与提示 -->
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Row 0: 标题栏 -->
+                    <DockPanel Grid.Row="0" Margin="0,0,0,14">
+                        <Button DockPanel.Dock="Right" Width="28" Height="28" Background="Transparent" BorderThickness="0" Cursor="Hand" Click="BtnCloseCdnBoost_Click">
+                            <TextBlock Text="✕" FontSize="14" FontWeight="Bold" Foreground="#94A3B8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="12" Height="12" Background="#FFA000" Margin="0,0,10,0" VerticalAlignment="Center">
+                                <Border.LayoutTransform>
+                                    <RotateTransform Angle="45"/>
+                                </Border.LayoutTransform>
+                            </Border>
+                            <TextBlock Text="国际服 CDN 节点优选与网络加速" FontSize="16" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        </StackPanel>
+                    </DockPanel>
+
+                    <!-- 分割线 -->
+                    <Border Grid.Row="0" VerticalAlignment="Bottom" Height="1" Background="#24334D" Margin="0,0,0,0"/>
+
+                    <!-- Row 1: 当前 Hosts 状态指示卡片 -->
+                    <Border Grid.Row="1" Background="#1A2436" BorderBrush="#2F3E58" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="0,12,0,12">
+                        <DockPanel>
+                            <TextBlock Text="当前状态: " FontSize="12" Foreground="#94A3B8" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="TxtCdnBoostCurrentState" Text="检测中..." FontSize="12" FontWeight="SemiBold" Foreground="#FFE082" VerticalAlignment="Center"/>
+                        </DockPanel>
+                    </Border>
+
+                    <!-- Row 2: 节点列表 -->
+                    <Border Grid.Row="2" Background="#0C121D" BorderBrush="#1F2A3D" BorderThickness="1" CornerRadius="10" Padding="8">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl x:Name="IcNodesList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#162030" BorderBrush="#25354F" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,6">
+                                            <DockPanel>
+                                                <!-- 延迟与推荐状态 -->
+                                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <Border Visibility="{Binding IsOptimal, Converter={StaticResource BoolToVis}}" Background="#332B10" BorderBrush="#FFA000" BorderThickness="1" CornerRadius="6" Padding="6,2" Margin="0,0,8,0">
+                                                        <TextBlock Text="★ 推荐优选" FontSize="10.5" FontWeight="Bold" Foreground="#FFE082"/>
+                                                    </Border>
+                                                    <TextBlock Text="{Binding StatusText}" FontSize="13" FontWeight="Bold" Foreground="#00E676" Width="60" TextAlignment="Right"/>
+                                                </StackPanel>
+
+                                                <!-- 节点名称与 IP/地区 -->
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" Foreground="#FFFFFF"/>
+                                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                        <TextBlock Text="{Binding Ip}" FontSize="11" Foreground="#94A3B8"/>
+                                                        <TextBlock Text=" · " FontSize="11" Foreground="#55657E"/>
+                                                        <TextBlock Text="{Binding Region}" FontSize="11" Foreground="#80D8FF"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </DockPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- Row 3: 底部操作按钮与说明 (宽裕排版，彻底杜绝按钮截断) -->
+                    <StackPanel Grid.Row="3" Margin="0,16,0,0">
+                        <DockPanel>
+                            <!-- 左侧：恢复默认 -->
+                            <Button DockPanel.Dock="Left" x:Name="BtnRestoreHosts" Content="↺ 恢复默认"
+                                    Style="{StaticResource SubActionBtn}" Height="34" Padding="14,0" FontSize="12"
+                                    Background="#222E42" Foreground="#94A3B8" Click="BtnRestoreHosts_Click"
+                                    ToolTip="移除 Hosts 加速规则，恢复系统默认 DNS"/>
+
+                            <!-- 右侧：重新测速 + 一键优选并加速 -->
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button x:Name="BtnRefreshBenchmark" Content="🔄 重新测速"
+                                        Style="{StaticResource SubActionBtn}" Height="34" Padding="12,0" FontSize="12"
+                                        Background="#222E42" Foreground="#80D8FF" Margin="0,0,10,0"
+                                        Click="BtnRefreshBenchmark_Click" ToolTip="重新并发测速所有亚太节点"/>
+
+                                <Button x:Name="BtnApplyOptimal" Height="34" Padding="16,0" Cursor="Hand" Click="BtnApplyOptimal_Click" ToolTip="自动选出延迟最低节点并写入系统 Hosts">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border CornerRadius="17">
+                                                <Border.Background>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                        <GradientStop Color="#FFE082" Offset="0"/>
+                                                        <GradientStop Color="#FFB300" Offset="0.5"/>
+                                                        <GradientStop Color="#FFA000" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Border.Background>
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                    <TextBlock Text="⚡ 一键优选并加速" FontSize="13" FontWeight="Bold" Foreground="#3E2700" Margin="4,0"/>
+                                </Button>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <!-- 底部说明注脚 -->
+                        <TextBlock Text="★ 一键优选将把最低延迟节点写入系统 Hosts 并自动刷新本地 DNS，随时可一键恢复默认。"
+                                   FontSize="10.5" Foreground="#64748B" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Grid>
+</Window>

@@ -1,0 +1,47 @@
+# ===== 构建产物 =====
+bin/
+obj/
+publish/
+publish_single_out/
+*.user
+*.suo
+
+# ===== 大体积 / 不应公开的资源 =====
+*.zip
+*.7z
+*.rar
+QzLauncher/Assets/OverseaDiff.zip
+OverseaDiff/
+OverseaDiffPackage/
+
+# ===== 补丁 / 注入二进制（含私服信息，一律不公开）=====
+*.dll
+*.disabled
+QzLauncher/Assets/Launcher/*.zip
+QzLauncher/Assets/Launcher/*.txt
+QzLauncher/Plugins/Presets/
+
+# ===== 工作区根目录的散落资源（非仓库内容）=====
+/Assets/
+
+# ===== 归档与无关工程 =====
+_archive/
+FufuLauncher-master/
+launcher_src/
+yuanshen_7.0.0/
+yshook/
+XiangMuJiYi/
+
+# ===== 运行期数据与日志 =====
+logs/
+*.log
+qz_launcher_config.json
+chiori_server.txt
+
+# ===== 旧版可执行文件与快捷方式 =====
+*.exe
+*.lnk
+
+# ===== 临时/调试脚本 =====
+*.ps1
+test_path.cs
